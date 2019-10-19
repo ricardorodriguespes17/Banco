@@ -41,6 +41,10 @@ public class LoginActivity extends AppCompatActivity {
                 createAccount();
             }
         });
+
+        if(BancoDados.getClientes().isEmpty()){
+            Client c = new Client("Ricardo Rodrigues Neto", "13171581647", "123456");
+        }
     }
 
     private void login(){
@@ -51,6 +55,8 @@ public class LoginActivity extends AppCompatActivity {
             if(c.getAccount().equals(dataTyped) || c.getCpf().equals(dataTyped)){
                 if(c.getPassword().equals(passwordTyped)){
                    //accepted data
+                    BancoDados.setClientLogged(c);
+
                     Intent i = new Intent(this, MainActivity.class);
                     startActivity(i);
                     return;
