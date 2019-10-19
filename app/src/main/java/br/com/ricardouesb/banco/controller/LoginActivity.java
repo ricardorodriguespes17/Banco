@@ -75,6 +75,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void createAccount(){
         Intent i = new Intent(this, CreateAccountActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(i);
     }
 }
