@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">Banco</string>
+    <string name="client">Cliente</string>
+    <string name="account">Conta</string>
+    <string name="balance">Saldo</string>
+    <string name="deposit">Depósito</string>
+    <string name="transfer">Transferência</string>
+    <string name="money_symbol">R$</string>
+    <string name="title_deposit">Digite o valor do depósito</string>
+    <string name="title_transfer">Digite o valor da transferência</string>
+    <string name="data_account_text">Conta ou CPF</string>
+    <string name="transfer_to">Transferêrencia para:</string>
+    <string name="type_password">Digite sua senha</string>
 </resources>

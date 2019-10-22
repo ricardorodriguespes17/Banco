@@ -43,7 +43,8 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         if(BancoDados.getClientes().isEmpty()){
-            Client c = new Client("Ricardo Rodrigues Neto", "13171581647", "123456");
+            Client c1 = new Client("Ricardo Rodrigues Neto", "1234", "123456");
+            Client c2 = new Client("Thiago Alves Viana", "9876", "123456");
         }
     }
 
