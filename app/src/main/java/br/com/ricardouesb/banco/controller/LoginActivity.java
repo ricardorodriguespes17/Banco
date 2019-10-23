@@ -29,7 +29,9 @@ public class LoginActivity extends AppCompatActivity {
 
         if(BancoDados.getClientes().isEmpty()){
             Client c1 = new Client("Ricardo Rodrigues Neto", "1234", "123456");
+            c1.setAccount("1111-1");
             Client c2 = new Client("Thiago Alves Viana", "9876", "123456");
+            c2.setAccount("2222-2");
         }
 
         if(preferences.contains("client_cpf")){

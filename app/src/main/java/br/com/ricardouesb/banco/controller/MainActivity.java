@@ -3,36 +3,51 @@ package br.com.ricardouesb.banco.controller;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.RecyclerView;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import br.com.ricardouesb.banco.R;
 import br.com.ricardouesb.banco.model.BancoDados;
 import br.com.ricardouesb.banco.model.Client;
+import br.com.ricardouesb.banco.model.Moviment;
+import br.com.ricardouesb.banco.model.MovimentAdapter;
 
 public class MainActivity extends AppCompatActivity {
     private TextView accountNumber, balanceText, nameClient;
-    private ImageButton tranferButton, depositButton;
+    private LinearLayout tranferButton, depositButton, extractButton, payButton;
+    private ImageView changeVisibility;
     //Elements from alert_transfer
     private TextView balanceTextTransfer, nameAccountTranfer;
     private EditText transferValue, passwordTranfer, dataAccount;
     //Elements from alert_deposit
     private EditText depositValue;
+    //Elements from alert_extract
+    private ListView listExtract;
+    //Elements form alert_pay
+    private EditText barCode;
     //SharedPreference
     SharedPreferences preferences;
 
     private Client clientLogged;
+    private boolean visible = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +68,9 @@ public class MainActivity extends AppCompatActivity {
         tranferButton = findViewById(R.id.transferButton);
         depositButton = findViewById(R.id.depositButton);
         nameClient = findViewById(R.id.nameClient);
+        changeVisibility = findViewById(R.id.change_visibility);
+        extractButton = findViewById(R.id.extractButton);
+        payButton = findViewById(R.id.payButton);
 
         tranferButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,6 +83,27 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 depositMenu();
+            }
+        });
+
+        extractButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                extractMenu();
+            }
+        });
+
+        payButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                payMenu();
+            }
+        });
+
+        changeVisibility.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                changeVisibility();
             }
         });
 
@@ -90,12 +129,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //Update data
     private void updateData(){
         nameClient.setText(clientLogged.getName());
         accountNumber.setText(clientLogged.getAccount());
         balanceText.setText("R$ " + clientLogged.getBalanceFormated());
     }
 
+    //Logout
     private void logout(){
         //Clear SharedPreferences's Client data
         SharedPreferences.Editor editor = preferences.edit();
@@ -106,6 +147,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(i);
     }
 
+    //Menus
     private void transferMenu() {
         AlertDialog alertTransfer;
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -118,39 +160,13 @@ public class MainActivity extends AppCompatActivity {
                 float value = Float.parseFloat(transferValue.getText().toString().trim());
 
                 if(password.equals(clientLogged.getPassword())){
-                    if(value <= clientLogged.getBalance()){
-                        Client clientTransfer = null;
+                    //Transfer
+                    Moviment m = new Moviment(clientLogged.getCpf(), dataOtherAccount, value, "Transferência para " , false);
 
-                        for(Client c : BancoDados.getClientes()){
-                            if(dataOtherAccount.equals(c.getAccount()) || dataOtherAccount.equals(c.getCpf())){
-                                clientTransfer = c;
-                                break;
-                            }
-                        }
-
-                        //Verification - Client not found
-                        if(clientTransfer == null){
-                            newToast("O cliente ao qual quer transferir não existe");
-                            return;
-                        }
-
-                        //Verification - Clients equals
-                        if(clientTransfer.equals(clientLogged)){
-                            newToast("Não pode transferir para sua conta");
-                            return;
-                        }
-
-                        //Transfer
-                        clientTransfer.setBalance(clientTransfer.getBalance() + value);
-                        clientLogged.setBalance(clientLogged.getBalance() - value);
-
-                        //Create a toast confirmation
-                        newToast("Transferência realizada com sucesso!");
-                        //Update data in activity
-                        updateData();
-                    }else{
-                        newToast("Valor menor que o saldo disponível");
-                    }
+                    String response = m.commit();
+                    newToast(response);
+                    //Update data in activity
+                    updateData();
                 }else{
                     newToast("Senha incorreta");
                 }
@@ -173,6 +189,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String valueString = depositValue.getText().toString().trim();
+
                 float value;
                 try{
                     value = Float.parseFloat(valueString);
@@ -181,8 +198,9 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                clientLogged.setBalance(clientLogged.getBalance() + value);
-                newToast("Depósito realizado com sucesso");
+                Moviment m = new Moviment(clientLogged.getCpf(), value, "Pagamento de depósito", true);
+                String response = m.commit();
+                newToast(response);
                 //Update data in activity
                 updateData();
             }
@@ -197,6 +215,40 @@ public class MainActivity extends AppCompatActivity {
         alertDeposit.show();
     }
 
+    private void extractMenu() {
+        AlertDialog alertExtract;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(buildViewExtract());
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) { }
+        });
+        alertExtract = builder.create();
+        alertExtract.show();
+    }
+
+    private void payMenu() {
+        AlertDialog alertPay;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(buildViewPay());
+        builder.setPositiveButton("Confirmar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Moviment m = new Moviment(clientLogged.getCpf(), 50, "Conta de água", false);
+                String response = m.commit();
+                newToast(response);
+                updateData();
+            }
+        });
+        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) { }
+        });
+        alertPay = builder.create();
+        alertPay.show();
+    }
+
+    //Build Menu's View
     private View buildViewTranfer() {
         LayoutInflater li = getLayoutInflater();
         View view = li.inflate(R.layout.alert_transfer, null);
@@ -238,6 +290,44 @@ public class MainActivity extends AppCompatActivity {
         return view;
     }
 
+    private View buildViewExtract() {
+        LayoutInflater li = getLayoutInflater();
+        View view = li.inflate(R.layout.alert_extract, null);
+        ArrayAdapter<Moviment> arrayAdapter = new MovimentAdapter(this);
+        listExtract = view.findViewById(R.id.list_extract);
+        listExtract.setAdapter(arrayAdapter);
+        listExtract.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            }
+        });
+
+        return view;
+    }
+
+    private View buildViewPay() {
+        LayoutInflater li = getLayoutInflater();
+        View view = li.inflate(R.layout.alert_pay, null);
+        barCode = view.findViewById(R.id.bar_code);
+
+        return view;
+    }
+
+    //Change visibility balance
+    private void changeVisibility() {
+        if(visible){
+            visible = false;
+            balanceText.setBackgroundColor(Color.WHITE);
+            changeVisibility.setImageResource(R.drawable.invisible);
+        }else{
+            visible = true;
+            balanceText.setBackgroundColor(Color.rgb(30, 144, 255));
+            changeVisibility.setImageResource(R.drawable.visible);
+        }
+    }
+
+    //Create and show a toast
     private void newToast(String msg){
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
