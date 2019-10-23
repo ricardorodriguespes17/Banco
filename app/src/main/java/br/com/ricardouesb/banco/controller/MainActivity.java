@@ -47,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences preferences;
 
     private Client clientLogged;
-    private boolean visible = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,6 +133,16 @@ public class MainActivity extends AppCompatActivity {
         nameClient.setText(clientLogged.getName());
         accountNumber.setText(clientLogged.getAccount());
         balanceText.setText("R$ " + clientLogged.getBalanceFormated());
+
+        boolean visible = preferences.getBoolean("visible_balance", true);
+
+        if(visible){
+            balanceText.setBackgroundColor(Color.rgb(30, 144, 255));
+            changeVisibility.setImageResource(R.drawable.visible);
+        }else{
+            balanceText.setBackgroundColor(Color.WHITE);
+            changeVisibility.setImageResource(R.drawable.invisible);
+        }
     }
 
     //Logout
@@ -316,15 +325,10 @@ public class MainActivity extends AppCompatActivity {
 
     //Change visibility balance
     private void changeVisibility() {
-        if(visible){
-            visible = false;
-            balanceText.setBackgroundColor(Color.WHITE);
-            changeVisibility.setImageResource(R.drawable.invisible);
-        }else{
-            visible = true;
-            balanceText.setBackgroundColor(Color.rgb(30, 144, 255));
-            changeVisibility.setImageResource(R.drawable.visible);
-        }
+        boolean visible = preferences.getBoolean("visible_balance", true);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("visible_balance", !visible).commit();
+        updateData();
     }
 
     //Create and show a toast
