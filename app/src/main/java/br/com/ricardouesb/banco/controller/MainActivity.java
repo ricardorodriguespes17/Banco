@@ -149,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
     private void logout(){
         //Clear SharedPreferences's Client data
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putString("client_cpf", null).commit();
+        editor.clear().commit();
 
         Intent i = new Intent(this, LoginActivity.class);
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
