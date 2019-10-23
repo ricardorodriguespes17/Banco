@@ -1,12 +1,14 @@
 package br.com.ricardouesb.banco.controller;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import br.com.ricardouesb.banco.R;
 import br.com.ricardouesb.banco.model.BancoDados;
@@ -16,11 +18,29 @@ public class LoginActivity extends AppCompatActivity {
     private Button createAccount, enter;
     private EditText dataText, passwordText;
     private TextView errorText;
+    private SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        preferences = getSharedPreferences("user_preferences", MODE_PRIVATE);
+
+        if(BancoDados.getClientes().isEmpty()){
+            Client c1 = new Client("Ricardo Rodrigues Neto", "1234", "123456");
+            Client c2 = new Client("Thiago Alves Viana", "9876", "123456");
+        }
+
+        if(preferences.contains("client_cpf")){
+            String clientCPF = preferences.getString("client_cpf", null);
+            for(Client c : BancoDados.getClientes()){
+                if(c.getCpf().equals(clientCPF)){
+                    loginAccept(c);
+                    return;
+                }
+            }
+        }
 
         dataText = findViewById(R.id.dataText);
         passwordText = findViewById(R.id.passwordTextLogin);
@@ -41,11 +61,6 @@ public class LoginActivity extends AppCompatActivity {
                 createAccount();
             }
         });
-
-        if(BancoDados.getClientes().isEmpty()){
-            Client c1 = new Client("Ricardo Rodrigues Neto", "1234", "123456");
-            Client c2 = new Client("Thiago Alves Viana", "9876", "123456");
-        }
     }
 
     private void login(){
@@ -55,11 +70,7 @@ public class LoginActivity extends AppCompatActivity {
         for(Client c : BancoDados.getClientes()){
             if(c.getAccount().equals(dataTyped) || c.getCpf().equals(dataTyped)){
                 if(c.getPassword().equals(passwordTyped)){
-                   //accepted data
-                    BancoDados.setClientLogged(c);
-
-                    Intent i = new Intent(this, MainActivity.class);
-                    startActivity(i);
+                    loginAccept(c);
                     return;
                 }else{
                     //incorret password
@@ -72,6 +83,15 @@ public class LoginActivity extends AppCompatActivity {
         //user not found
         errorText.setText("Usuário não encontrado");
 
+    }
+
+    private void loginAccept(Client client){
+        //Save client with SharedPreferences
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString("client_cpf", client.getCpf()).commit();
+
+        Intent i = new Intent(this, MainActivity.class);
+        startActivity(i);
     }
 
     private void createAccount(){

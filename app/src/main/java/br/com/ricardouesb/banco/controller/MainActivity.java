@@ -2,6 +2,7 @@ package br.com.ricardouesb.banco.controller;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -28,13 +29,24 @@ public class MainActivity extends AppCompatActivity {
     private EditText transferValue, passwordTranfer, dataAccount;
     //Elements from alert_deposit
     private EditText depositValue;
+    //SharedPreference
+    SharedPreferences preferences;
 
-    private Client clientLogged = BancoDados.getClientLogged();
+    private Client clientLogged;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        preferences = getSharedPreferences("user_preferences", MODE_PRIVATE);
+
+        for(Client c : BancoDados.getClientes()){
+            String clientCPF = preferences.getString("client_cpf", null);
+            if(c.getCpf().equals(clientCPF)){
+                clientLogged = c;
+            }
+        }
 
         accountNumber = findViewById(R.id.accountNumberText);
         balanceText = findViewById(R.id.balanceAccountText);
@@ -85,7 +97,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void logout(){
-        BancoDados.setClientLogged(null);
+        //Clear SharedPreferences's Client data
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.clear().commit();
+
         Intent i = new Intent(this, LoginActivity.class);
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(i);
