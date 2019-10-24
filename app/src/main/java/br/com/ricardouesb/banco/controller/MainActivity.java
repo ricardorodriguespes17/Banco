@@ -106,6 +106,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        balanceText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                changeVisibility();
+            }
+        });
+
         updateData();
     }
 
@@ -152,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
         editor.clear().commit();
 
         Intent i = new Intent(this, LoginActivity.class);
-        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(i);
     }
 

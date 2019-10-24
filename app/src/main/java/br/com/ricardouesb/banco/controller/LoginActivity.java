@@ -93,12 +93,12 @@ public class LoginActivity extends AppCompatActivity {
         editor.putString("client_cpf", client.getCpf()).commit();
 
         Intent i = new Intent(this, MainActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(i);
     }
 
     private void createAccount(){
         Intent i = new Intent(this, CreateAccountActivity.class);
-        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(i);
     }
 }
